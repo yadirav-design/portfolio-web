@@ -684,6 +684,8 @@ img {
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 40px;
+  justify-content: center;
+  align-items: center;
 }
 
 .contact-info {
@@ -694,41 +696,44 @@ img {
 
 .contact-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  gap: 15px;
 }
 
 .contact-item i {
-  width: 50px;
-  height: 50px;
-  background-color: rgba(100, 130, 132, 0.1); /* Primary color with opacity */
+  width: 45px;
+  height: 45px;
+  background-color: rgba(100, 130, 132, 0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   color: var(--primary-color);
-  margin-right: 15px;
+  flex-shrink: 0; /* Evita que el ícono se reduzca */
 }
 
 .contact-item h5 {
   font-size: 18px;
-  margin-bottom: 5px;
+  margin: 0;
 }
 
 .contact-item p {
   color: var(--light-text);
+  margin: 0;
+  line-height: 1.4;
 }
 
 .social-links {
   display: flex;
   gap: 15px;
-  margin-top: 20px;
+  margin-top: 15px;
   justify-content: center;
 }
 
 .social-links a {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   background-color: rgba(100, 130, 132, 0.1); /* Primary color with opacity */
   border-radius: 50%;
   display: flex;
