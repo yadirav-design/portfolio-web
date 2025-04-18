@@ -2,45 +2,36 @@
 document.addEventListener("DOMContentLoaded", function () {
   // Mobile menu functionality
   const hamburger = document.querySelector(".hamburger");
-  const mobileMenu = document.createElement("div");
-  mobileMenu.classList.add("mobile-menu");
 
-  // Create mobile menu content
-  mobileMenu.innerHTML = `
-      <button class="close-menu">×</button>
-      <div class="mobile-nav-links">
-        <a href="#" class="active">Inicio</a>
-        <a href="#services">Servicios</a>
-        <a href="#about">Sobre mí</a>
-        <a href="#projects">Proyectos</a>
-        <a href="#blog">Blog</a>
-        <a href="#contact">Contacto</a>
-      </div>
-    `;
+  if (hamburger) {
+    const mobileMenu = document.querySelector(".mobile-menu");
 
-  document.body.appendChild(mobileMenu);
-
-  // Toggle mobile menu
-  hamburger.addEventListener("click", function () {
-    mobileMenu.classList.toggle("active");
-    document.body.style.overflow = "hidden";
-  });
-
-  // Close mobile menu
-  const closeMenu = document.querySelector(".close-menu");
-  closeMenu.addEventListener("click", function () {
-    mobileMenu.classList.remove("active");
-    document.body.style.overflow = "auto";
-  });
-
-  // Close mobile menu when clicking on links
-  const mobileLinks = document.querySelectorAll(".mobile-nav-links a");
-  mobileLinks.forEach((link) => {
-    link.addEventListener("click", function () {
-      mobileMenu.classList.remove("active");
-      document.body.style.overflow = "auto";
+    // Toggle mobile menu
+    hamburger.addEventListener("click", function () {
+      mobileMenu.classList.toggle("active");
+      document.body.style.overflow = mobileMenu.classList.contains("active")
+        ? "hidden"
+        : "auto";
     });
-  });
+
+    // Close mobile menu
+    const closeMenu = document.querySelector(".close-menu");
+    if (closeMenu) {
+      closeMenu.addEventListener("click", function () {
+        mobileMenu.classList.remove("active");
+        document.body.style.overflow = "auto";
+      });
+    }
+
+    // Close mobile menu when clicking on links
+    const mobileLinks = document.querySelectorAll(".mobile-nav-links a");
+    mobileLinks.forEach((link) => {
+      link.addEventListener("click", function () {
+        mobileMenu.classList.remove("active");
+        document.body.style.overflow = "auto";
+      });
+    });
+  }
 
   // Smooth scrolling for all navigation links
   const allLinks = document.querySelectorAll('a[href^="#"]');
@@ -52,9 +43,21 @@ document.addEventListener("DOMContentLoaded", function () {
       const targetId = this.getAttribute("href");
       if (targetId === "#") return;
 
+      // Special case for #about which should scroll to hero section
+      if (targetId === "#about") {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+        return;
+      }
+
       const targetElement = document.querySelector(targetId);
       if (targetElement) {
-        const offsetTop = targetElement.offsetTop - 80;
+        const headerHeight = document.querySelector("header")
+          ? document.querySelector("header").offsetHeight
+          : 80;
+        const offsetTop = targetElement.offsetTop - headerHeight;
 
         window.scrollTo({
           top: offsetTop,
@@ -69,10 +72,24 @@ document.addEventListener("DOMContentLoaded", function () {
   const navLinks = document.querySelectorAll(".nav-links a, .mobile-nav-links a");
 
   function highlightNavigation() {
-    const scrollPosition = window.scrollY + 100;
+    if (sections.length === 0 || navLinks.length === 0) return;
 
+    const scrollPosition = window.scrollY + 150;
+
+    // Check if we're at the top of the page first
+    if (scrollPosition < 100) {
+      navLinks.forEach((link) => {
+        link.classList.remove("active");
+        if (link.getAttribute("href") === "#") {
+          link.classList.add("active");
+        }
+      });
+      return;
+    }
+
+    // Otherwise check which section is in view
     sections.forEach((section) => {
-      const sectionTop = section.offsetTop - 100;
+      const sectionTop = section.offsetTop - 150;
       const sectionHeight = section.offsetHeight;
       const sectionId = section.getAttribute("id");
 
@@ -85,81 +102,57 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
     });
-
-    // Check if we're at the top of the page
-    if (scrollPosition < 100) {
-      navLinks.forEach((link) => {
-        link.classList.remove("active");
-        if (link.getAttribute("href") === "#") {
-          link.classList.add("active");
-        }
-      });
-    }
   }
 
   window.addEventListener("scroll", highlightNavigation);
+  highlightNavigation(); // Set initial active state
 
-  // Form validation
-  const contactForm = document.querySelector(".contact-form");
+  // Animation on scroll - only if these elements exist
+  const animatedElements = document.querySelectorAll(".animated-element");
 
-  if (contactForm) {
-    contactForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      // Simple validation
-      const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
-      const subject = document.getElementById("subject").value;
-      const message = document.getElementById("message").value;
-
-      if (!name || !email || !subject || !message) {
-        alert("Por favor, completa todos los campos");
-        return;
-      }
-
-      // Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        alert("Por favor, introduce un email válido");
-        return;
-      }
-
-      // If validation passes, you would normally send the form data to a server
-      // For this example, we'll just show a success message
-      alert("¡Mensaje enviado con éxito! Gracias por contactar.");
-      contactForm.reset();
+  if (animatedElements.length > 0) {
+    // Set initial styles for animation
+    animatedElements.forEach((element) => {
+      element.style.opacity = "0";
+      element.style.transform = "translateY(20px)";
+      element.style.transition = "opacity 0.6s ease, transform 0.6s ease";
     });
-  }
 
-  // Animation on scroll
-  function revealOnScroll() {
-    const elements = document.querySelectorAll(
-      ".service-card, .portfolio-item, .timeline-item"
-    );
+    // Use Intersection Observer for better performance
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.style.opacity = "1";
+              entry.target.style.transform = "translateY(0)";
+              observer.unobserve(entry.target); // Stop observing after animation
+            }
+          });
+        },
+        {
+          root: null,
+          rootMargin: "0px",
+          threshold: 0.15,
+        }
+      );
 
-    elements.forEach((element) => {
-      const elementTop = element.getBoundingClientRect().top;
-      const elementVisible = 150;
-
-      if (elementTop < window.innerHeight - elementVisible) {
-        element.style.opacity = "1";
-        element.style.transform = "translateY(0)";
+      // Start observing each element
+      animatedElements.forEach((element) => observer.observe(element));
+    } else {
+      // Fallback for browsers without IntersectionObserver
+      function revealOnScroll() {
+        animatedElements.forEach((element) => {
+          const elementTop = element.getBoundingClientRect().top;
+          if (elementTop < window.innerHeight - 100) {
+            element.style.opacity = "1";
+            element.style.transform = "translateY(0)";
+          }
+        });
       }
-    });
+
+      window.addEventListener("scroll", revealOnScroll);
+      revealOnScroll(); // Initial check
+    }
   }
-
-  // Set initial styles for animation
-  const animatedElements = document.querySelectorAll(
-    ".service-card, .portfolio-item, .timeline-item"
-  );
-  animatedElements.forEach((element) => {
-    element.style.opacity = "0";
-    element.style.transform = "translateY(20px)";
-    element.style.transition = "all 0.6s ease";
-  });
-
-  window.addEventListener("scroll", revealOnScroll);
-
-  // Trigger once on load
-  revealOnScroll();
 });
